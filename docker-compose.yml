@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: telegram_bot_app
+    restart: unless-stopped
+    volumes:
+      - .:/var/www
+    networks:
+      - telegram_network
+    env_file:
+      - .env
+
+  nginx:
+    image: nginx:alpine
+    container_name: telegram_bot_nginx
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - telegram_network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: telegram_bot_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - telegram_network
+
+networks:
+  telegram_network:
+    driver: bridge
+
+volumes:
+  pgdata:
