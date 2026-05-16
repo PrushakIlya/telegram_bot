@@ -2,7 +2,7 @@
     "name": "prushak/telegram_bot",
     "autoload": {
         "psr-4": {
-            "Prushak\\TelegramBot\\": "src/"
+            "App\\": "app/"
         }
     },
     "authors": [
