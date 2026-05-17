@@ -12,9 +12,7 @@ return [
             ],
         ],
     ],
-    'async_requests' => [
-        'enabled' => false,
-    ],
+    'async_requests' => false,
     'http_client_handler' => null,
     'resolve_command_dependencies' => true,
 ];

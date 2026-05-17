@@ -10,6 +10,8 @@
 - Use gemini documentation creating agents https://geminicli.com/docs/cli/using-agent-skills/
 - Use gemini documentation creating skills https://geminicli.com/docs/cli/creating-skills/
 - Use gemini documentation best practices https://geminicli.com/docs/cli/skills-best-practices/
+- Look at storage/logs/laravel.log if appear any errors
+- Replykeyboardmarkup use documentation https://core.telegram.org/bots/api#replykeyboardmarkup
 
 ## Coding Style
 
