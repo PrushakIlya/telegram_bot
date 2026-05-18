@@ -6,17 +6,18 @@ use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Telegram\Bot\Laravel\Facades\Telegram;
 use Telegram\Bot\Keyboard\Keyboard;
+use App\Models\Tag;
 
 class TelegramController extends Controller
 {
     private TelegramService $telegramService;
+    protected array $tags;
 
     public function __construct(TelegramService $telegramService)
     {
         $this->telegramService = new TelegramService();
+        $this->tags = Tag::all()->pluck('name')->toArray();
     }
-
-    const TAGS = ['new', 'old', 'temp'];
 
     public function handle(Request $request)
     {
@@ -32,12 +33,12 @@ class TelegramController extends Controller
             \Log::info("User $userId:$username sent a message in chat $chatId");
 
             $replyMarkup = Keyboard::make([
-                'keyboard' => [self::TAGS],
+                'keyboard' => [$this->tags],
                 'resize_keyboard' => true,
                 'one_time_keyboard' => false
             ]);
 
-            if (in_array($text, self::TAGS)) {
+            if (in_array($text, $this->tags)) {
                 \Cache::put('user_tag_' . $chatId, (string) $text, 3600);
 
                 Telegram::sendMessage([
