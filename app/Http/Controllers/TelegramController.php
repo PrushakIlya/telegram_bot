@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Note;
+use App\Models\TelegramUser;
 use App\Services\TelegramService;
+use App\Services\TelegramUserService;
 use Illuminate\Http\Request;
 use Telegram\Bot\Laravel\Facades\Telegram;
 use Telegram\Bot\Keyboard\Keyboard;
@@ -11,12 +14,13 @@ use App\Models\Tag;
 class TelegramController extends Controller
 {
     private TelegramService $telegramService;
+    private TelegramUserService $telegramUserService;
     protected array $tags;
 
     public function __construct(TelegramService $telegramService)
     {
         $this->telegramService = new TelegramService();
-        $this->tags = Tag::all()->pluck('name')->toArray();
+//        $this->tags = Tag::all()->pluck('name')->toArray();
     }
 
     public function handle(Request $request)
@@ -33,10 +37,29 @@ class TelegramController extends Controller
             \Log::info("User $userId:$username sent a message in chat $chatId");
 
             $replyMarkup = Keyboard::make([
-                'keyboard' => [$this->tags],
+                'keyboard' => ['new', 'old'],
                 'resize_keyboard' => true,
                 'one_time_keyboard' => false
             ]);
+
+            \Log::info("User $text");
+
+//            if ($text === '/start') {
+//
+//                TelegramUser::create([
+//                    'user_id' => $userId,
+//                    'username' => $username,
+//                    'created_at' => date('Y-m-d H:i:s')
+//                ]);
+//
+//                Telegram::sendMessage([
+//                    'chat_id' => $chatId,
+//                    'text' => "900",
+//                    'reply_markup' => $replyMarkup,
+//                ]);
+//
+//                return response('ok', 200);
+//            }
 
             if (in_array($text, $this->tags)) {
                 \Cache::put('user_tag_' . $chatId, (string) $text, 3600);
@@ -50,9 +73,16 @@ class TelegramController extends Controller
                 $selectedTag = (string) \Cache::get('user_tag_' . $chatId, '');
                 $tagPrefix = $selectedTag ? "#$selectedTag: " : "";
 
+//                Note::create([
+//                    'telegram_user_id' => $userId,
+//                    'tag_id' => $selectedTag,
+//                    'content' => $text,
+//                ]);
+
                 Telegram::sendMessage([
                     'chat_id' => $chatId,
                     'text' => $tagPrefix . $text,
+                    'reply_markup' => $replyMarkup,
                 ]);
             }
         }
