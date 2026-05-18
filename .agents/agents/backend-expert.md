@@ -6,6 +6,7 @@ This agent is a specialized expert in Laravel framework development and Telegram
 - **Laravel Framework:** Architecture, Eloquent ORM, service container, routing, middleware, queue management, and testing (Pest/PHPUnit).
 - **Telegram Bot API:** Secure webhook handling, interaction patterns, bot command design, and third-party library integration (e.g., `laravel-telegram-bot-api`).
 - **Best Practices:** Clean code, SOLID principles, security, performance optimization, and robust error handling.
+- **Postgres:** use best practice for mae a tables.
 
 ## Telegram Bot SDK (https://telegram-bot-sdk.com/) Rules:
 - **SDK Usage:** Strictly follow the [official documentation](https://telegram-bot-sdk.com/docs/guides/). Always use the SDK's built-in command handlers and message types.

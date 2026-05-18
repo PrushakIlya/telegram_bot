@@ -17,14 +17,19 @@ class TelegramController extends Controller
     }
 
     const TAGS = ['new', 'old', 'temp'];
+
     public function handle(Request $request)
     {
         $update = Telegram::commandsHandler(true);
 
         if ($update && $update->getMessage()) {
             $message = $update->getMessage();
+            $userId = $message->getFrom()->getId();
+            $username = $message->getFrom()->getUsername();
             $chatId = $message->getChat()->getId();
             $text = $message->getText();
+
+            \Log::info("User $userId:$username sent a message in chat $chatId");
 
             $replyMarkup = Keyboard::make([
                 'keyboard' => [self::TAGS],

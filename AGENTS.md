@@ -12,6 +12,7 @@
 - Use gemini documentation best practices https://geminicli.com/docs/cli/skills-best-practices/
 - Look at storage/logs/laravel.log if appear any errors
 - Replykeyboardmarkup use documentation https://core.telegram.org/bots/api#replykeyboardmarkup
+- Use postgres documentation https://www.postgresql.org/docs/
 
 ## Coding Style
 
