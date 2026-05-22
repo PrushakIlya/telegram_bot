@@ -7,4 +7,4 @@ use Illuminate\Support\Facades\Route;
 //    return view('welcome');
 //});
 
-//Route::post('/telegram/webhook', [TelegramController::class, 'handle']);
+Route::post('/telegram/webhook', [TelegramController::class, 'handle']);

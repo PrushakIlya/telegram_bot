@@ -13,20 +13,11 @@ use App\Models\Tag;
 
 class TelegramController extends Controller
 {
-    private TelegramService $telegramService;
-    private TelegramUserService $telegramUserService;
-    protected array $tags;
-
-    public function __construct(TelegramService $telegramService)
-    {
-        $this->telegramService = new TelegramService();
-//        $this->tags = Tag::all()->pluck('name')->toArray();
-    }
-
     public function handle(Request $request)
     {
+//        $tags = ['new', 'old'];
         $update = Telegram::commandsHandler(true);
-
+//        \Log::info("User ");
         if ($update && $update->getMessage()) {
             $message = $update->getMessage();
             $userId = $message->getFrom()->getId();
@@ -34,15 +25,15 @@ class TelegramController extends Controller
             $chatId = $message->getChat()->getId();
             $text = $message->getText();
 
-            \Log::info("User $userId:$username sent a message in chat $chatId");
+//            \Log::info("User $userId:$username sent a message in chat $chatId");
 
             $replyMarkup = Keyboard::make([
-                'keyboard' => ['new', 'old'],
+                'keyboard' => [['new', 'old']],
                 'resize_keyboard' => true,
                 'one_time_keyboard' => false
             ]);
 
-            \Log::info("User $text");
+//            \Log::info("User $text");
 
 //            if ($text === '/start') {
 //
@@ -61,17 +52,17 @@ class TelegramController extends Controller
 //                return response('ok', 200);
 //            }
 
-            if (in_array($text, $this->tags)) {
-                \Cache::put('user_tag_' . $chatId, (string) $text, 3600);
-
-                Telegram::sendMessage([
-                    'chat_id' => $chatId,
-                    'text' => "Tag selected: #$text",
-                    'reply_markup' => $replyMarkup,
-                ]);
-            } else {
-                $selectedTag = (string) \Cache::get('user_tag_' . $chatId, '');
-                $tagPrefix = $selectedTag ? "#$selectedTag: " : "";
+//            if (in_array($text, $tags)) {
+//                \Cache::put('user_tag_' . $chatId, (string) $text, 3600);
+//
+//                Telegram::sendMessage([
+//                    'chat_id' => $chatId,
+//                    'text' => "Tag selected: #$text",
+//                    'reply_markup' => $replyMarkup,
+//                ]);
+//            } else {
+//                $selectedTag = (string) \Cache::get('user_tag_' . $chatId, '');
+//                $tagPrefix = $selectedTag ? "#$selectedTag: " : "";
 
 //                Note::create([
 //                    'telegram_user_id' => $userId,
@@ -81,13 +72,12 @@ class TelegramController extends Controller
 
                 Telegram::sendMessage([
                     'chat_id' => $chatId,
-                    'text' => $tagPrefix . $text,
+                    'text' => 123,
                     'reply_markup' => $replyMarkup,
                 ]);
-            }
+//            }
         }
 
         return response('ok', 200);
     }
-
 }
