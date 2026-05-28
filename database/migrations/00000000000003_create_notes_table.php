@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('notes', function (Blueprint $table) {
             $table->id();
             $table->text('message');
-            $table->foreignId('user_id')->constrained('telegram_users')->onDelete('cascade');
-            $table->foreignId('tag_id')->constrained('tags')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('telegram_users', 'user_id')->onDelete('cascade');
+            $table->foreignId('tag_id')->constrained('tags', 'id')->onDelete('cascade');
             $table->timestamps();
         });
     }

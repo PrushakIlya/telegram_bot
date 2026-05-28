@@ -41,6 +41,15 @@ services:
     networks:
       - telegram_network
 
+  redis:
+    image: redis:alpine
+    container_name: telegram_bot_redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    networks:
+      - telegram_network
+
 networks:
   telegram_network:
     driver: bridge

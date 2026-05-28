@@ -7,21 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class Note extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
-        'telegram_user_id',
+        'user_id',
         'tag_id',
-        'content',
+        'message',
     ];
 
     public function telegramUser()
     {
-        return $this->belongsTo(TelegramUser::class);
+        return $this->belongsTo(TelegramUser::class, 'notes_user_id_foreign', 'user_id');
     }
 
     public function tag()
     {
-        return $this->belongsTo(Tag::class);
+        return $this->hasMany(Tag::class, 'foreign_key', 'tag_id');
     }
 }

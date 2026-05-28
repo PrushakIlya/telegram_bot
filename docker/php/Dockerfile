@@ -4,9 +4,14 @@ RUN apk add --no-cache \
     postgresql-dev \
     libzip-dev \
     zip \
-    unzip
+    unzip \
+    $PHPIZE_DEPS
 
-RUN docker-php-ext-install pdo_pgsql zip
+RUN pecl install redis \
+    && docker-php-ext-enable redis \
+    && docker-php-ext-install pdo_pgsql zip
+
+RUN apk del $PHPIZE_DEPS
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
