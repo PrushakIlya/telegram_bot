@@ -4,13 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Note;
 use App\Models\TelegramUser;
-use App\Services\TelegramService;
-use App\Services\TelegramUserService;
 use Illuminate\Http\Request;
 use Telegram\Bot\Laravel\Facades\Telegram;
 use Telegram\Bot\Keyboard\Keyboard;
-use App\Models\Tag;
-use Telegram\Bot\Api;
 use Illuminate\Support\Facades\Cache;
 
 class TelegramController extends Controller
@@ -60,8 +56,10 @@ class TelegramController extends Controller
             } else {
                 $selectedTag = (string) Cache::get('user_tag_' . $chatId, 'new');
 
+                $user = TelegramUser::firstWhere('user_id', $userId);
+
                 Note::create([
-                    'user_id' => $userId,
+                    'user_id' => $user->id,
                     'tag_id' => array_search($selectedTag, $tags),
                     'message' => $text,
                 ]);
@@ -74,6 +72,6 @@ class TelegramController extends Controller
             }
         }
 
-        return response('ok', 200);
+        return response('ok');
     }
 }
