@@ -26,7 +26,7 @@ class NoteController extends Controller
 
         return response()->json([
             'data' => $note,
-            'status' => 'success',
+            'status' => 'success'
         ]);
     }
 
@@ -45,7 +45,7 @@ class NoteController extends Controller
             'data' => $note,
             'status' => 'error',
             'message' => 'Note id is not found',
-        ]);
+        ], 404);
     }
 
     public function update(NoteStoreRequest $request, int $id)
@@ -85,6 +85,6 @@ class NoteController extends Controller
             'data' => $note,
             'status' => 'error',
             'message' => 'Note id is not found',
-        ]);
+        ], 404);
     }
 }
