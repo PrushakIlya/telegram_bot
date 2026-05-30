@@ -40,15 +40,37 @@ class TelegramController extends Controller
 
                 Telegram::sendMessage([
                     'chat_id' => $chatId,
-                    'text' => "start",
+                    'text' => "You can start to use bot 🌞",
                     'reply_markup' => $replyMarkup,
                 ]);
+
+                return response('ok');
+            }
+
+            $user = TelegramUser::firstWhere('user_id', $userId);
+
+            $telegram = new \Telegram\Bot\Api(env('TELEGRAM_BOT_TOKEN'));
+
+//            // Создаём НОВЫЙ клиент Guzzle для этого запроса
+//            $httpClient = new Client([
+//                'base_uri' => 'https://api.telegram.org/bot' . config('telegram.bot_token') . '/',
+//                'timeout'  => 10.0,
+//            ]);
+
+            if (!$user) {
+                $telegram->sendMessage([
+                    'chat_id' => $chatId,
+                    'text' => "Use /start command to register telegram user",
+                    'reply_markup' => $replyMarkup,
+                ]);
+
+                return response('ok');
             }
 
             if (in_array($text, $tags)) {
                 Cache::put('user_tag_' . $chatId, (string) $text, 3600);
 
-                Telegram::sendMessage([
+                $telegram->sendMessage([
                     'chat_id' => $chatId,
                     'text' => "Tag selected: #$text",
                     'reply_markup' => $replyMarkup,
@@ -56,15 +78,13 @@ class TelegramController extends Controller
             } else {
                 $selectedTag = (string) Cache::get('user_tag_' . $chatId, 'new');
 
-                $user = TelegramUser::firstWhere('user_id', $userId);
-
                 Note::create([
                     'user_id' => $user->id,
                     'tag_id' => array_search($selectedTag, $tags),
                     'message' => $text,
                 ]);
 
-                Telegram::sendMessage([
+                $telegram->sendMessage([
                     'chat_id' => $chatId,
                     'text' => "#$selectedTag: $text",
                     'reply_markup' => $replyMarkup,
