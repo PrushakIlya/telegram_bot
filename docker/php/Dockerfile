@@ -5,6 +5,10 @@ RUN apk add --no-cache \
     libzip-dev \
     zip \
     unzip \
+    curl \
+    git\
+    openssl \
+    ca-certificates\
     $PHPIZE_DEPS
 
 RUN pecl install redis \
