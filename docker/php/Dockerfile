@@ -18,6 +18,7 @@ RUN pecl install redis \
 RUN apk del $PHPIZE_DEPS
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY php.ini /usr/local/etc/php/conf.d/zz-custom-error-reporting.ini
 
 WORKDIR /var/www/telegram_bot
 
