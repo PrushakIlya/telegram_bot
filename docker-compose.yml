@@ -23,6 +23,7 @@ services:
     volumes:
       - .:/var/www/telegram_bot
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./docker/nginx/ssl:/etc/nginx/ssl
     networks:
       - telegram_network
 
