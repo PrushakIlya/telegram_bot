@@ -15,8 +15,8 @@ RUN apk del $PHPIZE_DEPS
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www
+WORKDIR /var/www/telegram_bot
 
 COPY . .
 
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/telegram_bot/storage /var/www/telegram_bot/bootstrap/cache
