@@ -15,7 +15,7 @@ class TelegramUserController extends Controller
         $limit = $request->input('limit', 15);
 
         return response()->json([
-            'data' => TelegramUser::paginate($limit),
+            'data' => TelegramUser::paginate($limit)->items(),
             'status' => 'success'
         ]);
     }

@@ -14,7 +14,7 @@ class TagController extends Controller
         $limit = $request->input('limit', 15);
 
         return response()->json([
-            'data' => Tag::paginate($limit),
+            'data' => Tag::paginate($limit)->items(),
             'status' => 'success'
         ]);
     }

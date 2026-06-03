@@ -45,7 +45,7 @@ class NoteController extends Controller
         }
 
         return response()->json([
-            'data' => $note,
+            'data' => [],
             'status' => 'error',
             'message' => 'Note id is not found',
         ], 404);
