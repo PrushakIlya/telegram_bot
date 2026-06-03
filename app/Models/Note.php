@@ -15,11 +15,11 @@ class Note extends Model
 
     public function telegramUser()
     {
-        return $this->belongsTo(TelegramUser::class, 'notes_user_id_foreign', 'user_id');
+        return $this->belongsTo(TelegramUser::class, 'user_id');
     }
 
     public function tag()
     {
-        return $this->hasMany(Tag::class, 'foreign_key', 'tag_id');
+        return $this->belongsTo(Tag::class, 'tag_id');
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\NoteStoreRequest;
+use App\Http\Resources\NoteResource;
 use App\Models\Note;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,8 +15,10 @@ class NoteController extends Controller
     {
         $limit = $request->input('limit', 15);
 
+        $notes = Note::with('tag', 'telegramUser')->paginate($limit);
+
         return response()->json([
-            'data' => Note::paginate($limit),
+            'data' => NoteResource::collection($notes),
             'status' => 'success'
         ]);
     }
@@ -32,7 +35,7 @@ class NoteController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $note = Note::find($id);
+        $note = Note::with('tag', 'telegramUser')->find($id);
 
         if ($note) {
             return response()->json([
