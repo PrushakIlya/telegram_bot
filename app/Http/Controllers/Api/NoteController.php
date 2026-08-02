@@ -13,13 +13,31 @@ class NoteController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $limit = $request->input('limit', 15);
+        $limit = $request->input('limit', 10);
+        $currentPage = $request->input('currentPage', 1);
 
-        $notes = Note::with('tag', 'telegramUser')->paginate($limit);
+        $notes = Note::query()
+            ->with('tag', 'telegramUser')
+            ->when($request->filled('username'), function ($query) use ($request) {
+                $query->whereHas('telegramUser', function ($query) use ($request) {
+                    $query->where('username', $request->input('username'));
+                });
+            })
+            ->when($request->filled('tag'), function ($query) use ($request) {
+                $query->whereHas('tag', function ($query) use ($request) {
+                    $query->where('name', $request->input('tag'));
+                });
+            })
+            ->paginate($limit, ['*'], 'page', $currentPage);
 
         return response()->json([
             'data' => NoteResource::collection($notes),
-            'status' => 'success'
+            'status' => 'success',
+            'meta' => [
+                'currentPage' => $notes->currentPage(),
+                'limit' => $notes->perPage(),
+                'total' => $notes->total(),
+            ],
         ]);
     }
 
