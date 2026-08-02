@@ -24,9 +24,12 @@ class NoteStoreRequest extends FormRequest
      */
     public function rules(): array
     {
+        $telegramUser = $this->attributes->get('telegramUser');
+        $isAdmin = $telegramUser && $telegramUser->isAdmin();
+
         return [
             'message' => 'required|string',
-            'user_id' => 'required|integer|exists:telegram_users,id',
+            'user_id' => ($isAdmin ? 'required' : 'sometimes') . '|integer|exists:telegram_users,id',
             'tag_id' => 'required|integer|exists:tags,id',
         ];
     }

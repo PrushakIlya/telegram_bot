@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Auth\TelegramAuthController;
 use App\Http\Controllers\Api\UserNoteController;
 use App\Http\Controllers\TelegramController;
 use Illuminate\Http\Request;
@@ -25,8 +26,27 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('telegram-webhook', [TelegramController::class, 'handle']);
 
-Route::apiResource('telegram-users', TelegramUserController::class);
-Route::apiResource('tags', TagController::class);
-Route::apiResource('notes', NoteController::class);
+Route::prefix('auth/telegram')->group(function () {
+    Route::post('request-code', [TelegramAuthController::class, 'requestCode'])
+        ->middleware('throttle:5,1');
+    Route::post('verify-code', [TelegramAuthController::class, 'verifyCode'])
+        ->middleware('throttle:10,1');
+});
+
+Route::middleware('jwt.auth')->get('auth/me', function (Request $request) {
+    return response()->json([
+        'status' => 'success',
+        'data' => $request->attributes->get('telegramUser'),
+    ]);
+});
+
+Route::middleware(['jwt.auth', 'role.admin'])->group(function () {
+    Route::apiResource('telegram-users', TelegramUserController::class);
+});
+
+Route::middleware('jwt.auth')->group(function () {
+    Route::apiResource('tags', TagController::class);
+    Route::apiResource('notes', NoteController::class);
+});
 
 Route::apiResource('user.notes', UserNoteController::class)->only(['index']);

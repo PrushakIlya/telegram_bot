@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Middleware\EnsureIsAdmin;
 use App\Http\Middleware\ForceJsonResponse;
+use App\Http\Middleware\JwtAuthenticate;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->api(prepend: [
             ForceJsonResponse::class,
+        ]);
+
+        $middleware->alias([
+            'jwt.auth' => JwtAuthenticate::class,
+            'role.admin' => EnsureIsAdmin::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [

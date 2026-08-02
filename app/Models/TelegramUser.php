@@ -9,9 +9,13 @@ class TelegramUser extends Model
 {
     use HasFactory;
 
+    public const ROLE_USER = 'user';
+    public const ROLE_ADMIN = 'admin';
+
     protected $fillable = [
         'user_id',
         'username',
+        'role',
         'created_at',
 //        'telegram_chat_id',
 //        'telegram_user_id',
@@ -25,5 +29,15 @@ class TelegramUser extends Model
     public function notes()
     {
         return $this->hasMany(Note::class, 'user_id');
+    }
+
+    public function loginCodes()
+    {
+        return $this->hasMany(TelegramLoginCode::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
     }
 }

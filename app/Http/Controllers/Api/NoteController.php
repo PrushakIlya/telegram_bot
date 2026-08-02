@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\NoteStoreRequest;
 use App\Http\Resources\NoteResource;
 use App\Models\Note;
+use App\Models\TelegramUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -15,9 +16,13 @@ class NoteController extends Controller
     {
         $limit = $request->input('limit', 10);
         $currentPage = $request->input('currentPage', 1);
+        $telegramUser = $this->currentUser($request);
 
         $notes = Note::query()
             ->with('tag', 'telegramUser')
+            ->when(!$telegramUser->isAdmin(), function ($query) use ($telegramUser) {
+                $query->where('user_id', $telegramUser->id);
+            })
             ->when($request->filled('username'), function ($query) use ($request) {
                 $query->whereHas('telegramUser', function ($query) use ($request) {
                     $query->where('username', $request->input('username'));
@@ -28,6 +33,7 @@ class NoteController extends Controller
                     $query->where('name', $request->input('tag'));
                 });
             })
+            ->orderByDesc('created_at')
             ->paginate($limit, ['*'], 'page', $currentPage);
 
         return response()->json([
@@ -43,7 +49,14 @@ class NoteController extends Controller
 
     public function store(NoteStoreRequest $request): JsonResponse
     {
-        $note = Note::firstOrCreate($request->validated());
+        $telegramUser = $this->currentUser($request);
+        $data = $request->validated();
+
+        if (!$telegramUser->isAdmin()) {
+            $data['user_id'] = $telegramUser->id;
+        }
+
+        $note = Note::firstOrCreate($data);
 
         return response()->json([
             'data' => $note,
@@ -51,22 +64,26 @@ class NoteController extends Controller
         ]);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
         $note = Note::with('tag', 'telegramUser')->find($id);
 
-        if ($note) {
+        if (!$note) {
             return response()->json([
-                'data' => $note,
-                'status' => 'success'
-            ]);
+                'data' => [],
+                'status' => 'error',
+                'message' => 'Note id is not found',
+            ], 404);
+        }
+
+        if (!$this->canAccess($request, $note)) {
+            return $this->forbidden();
         }
 
         return response()->json([
-            'data' => [],
-            'status' => 'error',
-            'message' => 'Note id is not found',
-        ], 404);
+            'data' => $note,
+            'status' => 'success'
+        ]);
     }
 
     public function update(NoteStoreRequest $request, int $id)
@@ -80,7 +97,17 @@ class NoteController extends Controller
             ], 404);
         }
 
-        $note->update($request->validated());
+        if (!$this->canAccess($request, $note)) {
+            return $this->forbidden();
+        }
+
+        $data = $request->validated();
+
+        if (!$this->currentUser($request)->isAdmin()) {
+            $data['user_id'] = $note->user_id;
+        }
+
+        $note->update($data);
 
         return response()->json([
             'data' => $note,
@@ -88,24 +115,48 @@ class NoteController extends Controller
         ]);
     }
 
-    public function destroy(string $id): JsonResponse
+    public function destroy(Request $request, string $id): JsonResponse
     {
         $note = Note::find($id);
 
-        if ($note) {
-            $note->delete();
-
+        if (!$note) {
             return response()->json([
                 'data' => $note,
-                'status' => 'success',
-                'message' => 'Note deleted'
-            ]);
+                'status' => 'error',
+                'message' => 'Note id is not found',
+            ], 404);
         }
+
+        if (!$this->canAccess($request, $note)) {
+            return $this->forbidden();
+        }
+
+        $note->delete();
 
         return response()->json([
             'data' => $note,
+            'status' => 'success',
+            'message' => 'Note deleted'
+        ]);
+    }
+
+    private function currentUser(Request $request): TelegramUser
+    {
+        return $request->attributes->get('telegramUser');
+    }
+
+    private function canAccess(Request $request, Note $note): bool
+    {
+        $telegramUser = $this->currentUser($request);
+
+        return $telegramUser->isAdmin() || $note->user_id === $telegramUser->id;
+    }
+
+    private function forbidden(): JsonResponse
+    {
+        return response()->json([
             'status' => 'error',
-            'message' => 'Note id is not found',
-        ], 404);
+            'message' => 'Forbidden',
+        ], 403);
     }
 }
