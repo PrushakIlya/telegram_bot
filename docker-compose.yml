@@ -19,14 +19,14 @@ services:
     container_name: telegram_bot_nginx
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+        - "80:80"
+        - "443:443"
     volumes:
-      - .:/var/www/telegram_bot
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - /etc/nginx/ssl:/etc/nginx/ssl
+        - .:/var/www/telegram_bot
+        - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+        - ./docker/nginx/ssl:/etc/letsencrypt/live/prushak.space-0001
     networks:
-      - telegram_network
+        - telegram_network
 
   postgres:
     image: postgres:15-alpine
