@@ -93,7 +93,9 @@ class TelegramController extends Controller
     {
         return Tag::query()
             ->when($user, function ($query) use ($user) {
-                $query->whereNull('user_id')->orWhere('user_id', $user->id);
+                $query->where(function ($query) use ($user) {
+                    $query->whereNull('user_id')->orWhere('user_id', $user->id);
+                });
             }, function ($query) {
                 $query->whereNull('user_id');
             })
