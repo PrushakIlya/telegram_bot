@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Note;
+use App\Models\Tag;
 use App\Models\TelegramUser;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Telegram\Bot\Laravel\Facades\Telegram;
 use Telegram\Bot\Keyboard\Keyboard;
@@ -13,14 +15,6 @@ class TelegramController extends Controller
 {
     public function handle(Request $request)
     {
-        $tags = [1 =>'new', 2 =>'old'];
-
-        $replyMarkup = Keyboard::make([
-            'keyboard' => [['new', 'old']],
-            'resize_keyboard' => true,
-            'one_time_keyboard' => false
-        ]);
-
         $update = Telegram::commandsHandler(true);
 
         if ($update && $update->getMessage()) {
@@ -33,7 +27,7 @@ class TelegramController extends Controller
             $text = $message->getText();
 
             if ($text === '/start') {
-                TelegramUser::firstOrCreate([
+                $user = TelegramUser::firstOrCreate([
                     'user_id' => $userId,
                     'username' => $username,
                 ]);
@@ -41,7 +35,7 @@ class TelegramController extends Controller
                 Telegram::sendMessage([
                     'chat_id' => $chatId,
                     'text' => "You can start to use bot 🌞",
-                    'reply_markup' => $replyMarkup,
+                    'reply_markup' => $this->keyboardForTags($this->tagsForUser($user)),
                 ]);
 
                 return response('ok');
@@ -51,24 +45,23 @@ class TelegramController extends Controller
 
             $telegram = new \Telegram\Bot\Api(env('TELEGRAM_BOT_TOKEN'));
 
-//            // Создаём НОВЫЙ клиент Guzzle для этого запроса
-//            $httpClient = new Client([
-//                'base_uri' => 'https://api.telegram.org/bot' . config('telegram.bot_token') . '/',
-//                'timeout'  => 10.0,
-//            ]);
-
             if (!$user) {
                 $telegram->sendMessage([
                     'chat_id' => $chatId,
                     'text' => "Use /start command to register telegram user",
-                    'reply_markup' => $replyMarkup,
+                    'reply_markup' => $this->keyboardForTags($this->tagsForUser(null)),
                 ]);
 
                 return response('ok');
             }
 
-            if (in_array($text, $tags)) {
-                Cache::put('user_tag_' . $chatId, (string) $text, 3600);
+            $tags = $this->tagsForUser($user);
+            $replyMarkup = $this->keyboardForTags($tags);
+
+            $selectedByText = $tags->firstWhere('name', $text);
+
+            if ($selectedByText) {
+                Cache::put('user_tag_' . $chatId, $selectedByText->name, 3600);
 
                 $telegram->sendMessage([
                     'chat_id' => $chatId,
@@ -76,22 +69,44 @@ class TelegramController extends Controller
                     'reply_markup' => $replyMarkup,
                 ]);
             } else {
-                $selectedTag = (string) Cache::get('user_tag_' . $chatId, 'new');
+                $selectedTagName = (string) Cache::get('user_tag_' . $chatId, $tags->first()?->name);
+                $selectedTag = $tags->firstWhere('name', $selectedTagName);
 
                 Note::create([
                     'user_id' => $user->id,
-                    'tag_id' => array_search($selectedTag, $tags),
+                    'tag_id' => $selectedTag?->id,
                     'message' => $text,
                 ]);
 
                 $telegram->sendMessage([
                     'chat_id' => $chatId,
-                    'text' => "#$selectedTag: $text",
+                    'text' => "#$selectedTagName: $text",
                     'reply_markup' => $replyMarkup,
                 ]);
             }
         }
 
         return response('ok');
+    }
+
+    private function tagsForUser(?TelegramUser $user): Collection
+    {
+        return Tag::query()
+            ->when($user, function ($query) use ($user) {
+                $query->whereNull('user_id')->orWhere('user_id', $user->id);
+            }, function ($query) {
+                $query->whereNull('user_id');
+            })
+            ->orderBy('id')
+            ->get();
+    }
+
+    private function keyboardForTags(Collection $tags): Keyboard
+    {
+        return Keyboard::make([
+            'keyboard' => [$tags->pluck('name')->all()],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ]);
     }
 }
