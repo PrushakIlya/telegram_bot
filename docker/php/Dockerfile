@@ -19,9 +19,13 @@ RUN apk del $PHPIZE_DEPS
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/zz-custom-error-reporting.ini
+COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /var/www/telegram_bot
 
 COPY . .
 
 RUN chown -R www-data:www-data /var/www/telegram_bot/storage /var/www/telegram_bot/bootstrap/cache
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
