@@ -6,6 +6,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class NoteStoreRequest extends FormRequest
 {
@@ -30,7 +31,17 @@ class NoteStoreRequest extends FormRequest
         return [
             'message' => 'required|string',
             'user_id' => ($isAdmin ? 'required' : 'sometimes') . '|integer|exists:telegram_users,id',
-            'tag_id' => 'required|integer|exists:tags,id',
+            'tag_id' => [
+                'required',
+                'integer',
+                $isAdmin
+                    ? Rule::exists('tags', 'id')
+                    : Rule::exists('tags', 'id')->where(function ($query) use ($telegramUser) {
+                        $query->where(function ($query) use ($telegramUser) {
+                            $query->whereNull('user_id')->orWhere('user_id', $telegramUser?->id);
+                        });
+                    }),
+            ],
         ];
     }
 
